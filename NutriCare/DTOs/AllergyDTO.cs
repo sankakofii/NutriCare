@@ -1,9 +1,8 @@
-﻿namespace NutriCare.Models
+﻿namespace NutriCare.DTOs
 {
-    public class Allergy
+    public class AllergyDTO
     {
         public int AllergyId { get; set; }
         public string Type { get; set; } = string.Empty;
-        public List<Account>? Accounts { get; set; }
     }
 }

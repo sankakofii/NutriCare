@@ -1,10 +1,11 @@
-﻿using System.Net.Http.Headers;
+﻿using Microsoft.AspNetCore.Identity;
+using System.Net.Http.Headers;
 
 namespace NutriCare.Models
 {
-    public class ScanHistory
+    public class Scan
     {
-        public int ScanHistoryId { get; set; }
+        public int ScanId { get; set; }
         public DateTime ScanTime { get; set; }
         public Account Account { get; set; } = null!;
         public int AccountId { get; set; }

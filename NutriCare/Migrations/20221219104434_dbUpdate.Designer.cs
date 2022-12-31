@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NutriCare.Models;
 
@@ -11,9 +12,11 @@ using NutriCare.Models;
 namespace NutriCare.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20221219104434_dbUpdate")]
+    partial class dbUpdate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,36 +24,6 @@ namespace NutriCare.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
-
-            modelBuilder.Entity("AccountAllergy", b =>
-                {
-                    b.Property<int>("AccountsAccountId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("AllergiesAllergyId")
-                        .HasColumnType("int");
-
-                    b.HasKey("AccountsAccountId", "AllergiesAllergyId");
-
-                    b.HasIndex("AllergiesAllergyId");
-
-                    b.ToTable("AccountAllergy");
-                });
-
-            modelBuilder.Entity("AccountIntolerance", b =>
-                {
-                    b.Property<int>("AccountsAccountId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("IntolerancesIntoleranceId")
-                        .HasColumnType("int");
-
-                    b.HasKey("AccountsAccountId", "IntolerancesIntoleranceId");
-
-                    b.HasIndex("IntolerancesIntoleranceId");
-
-                    b.ToTable("AccountIntolerance");
-                });
 
             modelBuilder.Entity("NutriCare.Models.Account", b =>
                 {
@@ -60,6 +33,9 @@ namespace NutriCare.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AccountId"));
 
+                    b.Property<int?>("AllergiesAllergyId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -67,6 +43,9 @@ namespace NutriCare.Migrations
                     b.Property<string>("FirstName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("IntoleranceId")
+                        .HasColumnType("int");
 
                     b.Property<string>("LastName")
                         .IsRequired()
@@ -82,6 +61,10 @@ namespace NutriCare.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("AccountId");
+
+                    b.HasIndex("AllergiesAllergyId");
+
+                    b.HasIndex("IntoleranceId");
 
                     b.ToTable("Accounts");
                 });
@@ -117,7 +100,7 @@ namespace NutriCare.Migrations
 
                     b.HasKey("IntoleranceId");
 
-                    b.ToTable("Intolerances");
+                    b.ToTable("Intolerance");
                 });
 
             modelBuilder.Entity("NutriCare.Models.Product", b =>
@@ -128,40 +111,22 @@ namespace NutriCare.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ProductId"));
 
-                    b.Property<string>("Allergens")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("AllergensFromIngredients")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("Barcode")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("ImageFrontUrl")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ImageNutritionUrl")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ProductName")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("ProductId");
 
-                    b.HasIndex("Barcode")
-                        .IsUnique();
-
-                    b.ToTable("Products");
+                    b.ToTable("Product");
                 });
 
-            modelBuilder.Entity("NutriCare.Models.Scan", b =>
+            modelBuilder.Entity("NutriCare.Models.ScanHistory", b =>
                 {
-                    b.Property<int>("ScanId")
+                    b.Property<int>("ScanHistoryId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ScanId"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ScanHistoryId"));
 
                     b.Property<int>("AccountId")
                         .HasColumnType("int");
@@ -172,46 +137,31 @@ namespace NutriCare.Migrations
                     b.Property<DateTime>("ScanTime")
                         .HasColumnType("datetime2");
 
-                    b.HasKey("ScanId");
+                    b.HasKey("ScanHistoryId");
 
                     b.HasIndex("AccountId");
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("Scans");
+                    b.ToTable("ScanHistories");
                 });
 
-            modelBuilder.Entity("AccountAllergy", b =>
+            modelBuilder.Entity("NutriCare.Models.Account", b =>
                 {
-                    b.HasOne("NutriCare.Models.Account", null)
+                    b.HasOne("NutriCare.Models.Allergy", "Allergies")
                         .WithMany()
-                        .HasForeignKey("AccountsAccountId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("AllergiesAllergyId");
 
-                    b.HasOne("NutriCare.Models.Allergy", null)
+                    b.HasOne("NutriCare.Models.Intolerance", "Intolerance")
                         .WithMany()
-                        .HasForeignKey("AllergiesAllergyId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("IntoleranceId");
+
+                    b.Navigation("Allergies");
+
+                    b.Navigation("Intolerance");
                 });
 
-            modelBuilder.Entity("AccountIntolerance", b =>
-                {
-                    b.HasOne("NutriCare.Models.Account", null)
-                        .WithMany()
-                        .HasForeignKey("AccountsAccountId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("NutriCare.Models.Intolerance", null)
-                        .WithMany()
-                        .HasForeignKey("IntolerancesIntoleranceId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("NutriCare.Models.Scan", b =>
+            modelBuilder.Entity("NutriCare.Models.ScanHistory", b =>
                 {
                     b.HasOne("NutriCare.Models.Account", "Account")
                         .WithMany()

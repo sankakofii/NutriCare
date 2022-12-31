@@ -2,9 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using NutriCare.DTOs;
 using NutriCare.Models;
 
 namespace NutriCare.Controllers
@@ -14,31 +17,38 @@ namespace NutriCare.Controllers
     public class AccountsController : ControllerBase
     {
         private readonly DataContext _context;
+        private readonly IMapper _mapper;
 
-        public AccountsController(DataContext context)
+        public AccountsController(DataContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
         // GET: api/Accounts
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Account>>> GetAccounts()
         {
-            return await _context.Accounts.ToListAsync();
+            return Ok(await _context.Accounts.ProjectTo<AccountDTO>(_mapper.ConfigurationProvider).ToListAsync());
         }
 
         // GET: api/Accounts/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Account>> GetAccount(int id)
+        [HttpGet("{id}", Name = "GetAccountById")]
+        public async Task<ActionResult<Account>> GetAccountById(int id)
         {
-            var account = await _context.Accounts.FindAsync(id);
+            if (_context.Accounts == null)
+            {
+                return NotFound();
+            }
+
+            var account = await _context.Accounts.Where(i => i.AccountId == id).ProjectTo<AccountDTO>(_mapper.ConfigurationProvider).FirstOrDefaultAsync();
 
             if (account == null)
             {
                 return NotFound();
             }
 
-            return account;
+            return Ok(account);
         }
 
         // PUT: api/Accounts/5
@@ -97,6 +107,102 @@ namespace NutriCare.Controllers
             await _context.SaveChangesAsync();
 
             return NoContent();
+        }
+
+        // POST: api/accounts/set_allergy
+        [HttpPost("/allergies/set_allergy")]
+        public async Task<IActionResult> SetAllergyForAccountByAccountId(int account_id, int allergy_id)
+        {
+            var account = await _context.Accounts
+                .AsNoTracking()
+                .Where(i => i.AccountId == account_id)
+                .Include(e => e.Allergies)
+                .FirstOrDefaultAsync();
+            if (account == null)
+            {
+                return NotFound();
+            }
+
+            var allergen = await _context.Allergies.FindAsync(allergy_id);
+            if (allergen == null)
+            {
+                return NotFound();
+            }
+
+            account.Allergies.Add(allergen);
+            await _context.SaveChangesAsync();
+
+            return Ok();
+        }
+
+        // DELETE: /api/accounts/allergies/remove_allergy
+        [HttpDelete("allergies/remove_allergy")]
+        public async Task<IActionResult> RemoveAllergyFromAccountByAccountId(int account_id, int allergy_id)
+        {
+            var allergen = await _context.Allergies.FindAsync(allergy_id);
+            if (allergen == null)
+            {
+                return NotFound();
+            }
+
+            var account = await _context.Accounts.AsNoTracking().Where(i => i.AccountId == account_id && i.Allergies.Contains(allergen)).Include(e => e.Allergies).FirstOrDefaultAsync();
+            if (account == null)
+            {
+                return NotFound();
+            }
+
+            account.Allergies.Remove(allergen);
+            await _context.SaveChangesAsync();
+
+            return Ok(await _context.Accounts.AsNoTracking().Where(i => i.AccountId == account.AccountId).ProjectTo<AccountDTO>(_mapper.ConfigurationProvider).FirstOrDefaultAsync());
+        }
+
+        // POST: api/accounts/set_intolerance
+        [HttpPost("/intolerances/set_intolerance")]
+        public async Task<IActionResult> SetIntoleranceForAccountByAccountId(int account_id, int intolerance_id)
+        {
+            var account = await _context.Accounts
+                .AsNoTracking()
+                .Where(i => i.AccountId == account_id)
+                .Include(e => e.Intolerances)
+                .FirstOrDefaultAsync();
+            if (account == null)
+            {
+                return NotFound();
+            }
+
+            var intolerance = await _context.Intolerances.FindAsync(intolerance_id);
+            if (intolerance == null)
+            {
+                return NotFound();
+            }
+
+            account.Intolerances.Add(intolerance);
+            await _context.SaveChangesAsync();
+
+            return Ok(await _context.Accounts.AsNoTracking().Where(i => i.AccountId == account.AccountId).ProjectTo<AccountDTO>(_mapper.ConfigurationProvider).FirstOrDefaultAsync());
+        }
+
+        // DELETE: /api/accounts/intolerances/remove_intolerance
+        [HttpDelete("intolerances/remove_intolerance")]
+        public async Task<IActionResult> RemoveIntoleranceFromAccountByAccountId(int account_id, int intolerance_id)
+        {
+            var intolerance = await _context.Intolerances.FindAsync(intolerance_id);
+            if (intolerance == null)
+            {
+                return NotFound();
+            }
+
+            var account = await _context.Accounts.AsNoTracking().Where(i => i.AccountId == account_id && i.Intolerances.Contains(intolerance)).Include(e => e.Intolerances).FirstOrDefaultAsync();
+            if (account == null)
+            {
+                return NotFound();
+            }
+
+            account.Intolerances.Remove(intolerance);
+            await _context.SaveChangesAsync();
+
+            return Ok(await _context.Accounts.AsNoTracking().Where(i => i.AccountId == account.AccountId).ProjectTo<AccountDTO>(_mapper.ConfigurationProvider).FirstOrDefaultAsync());
         }
 
         private bool AccountExists(int id)

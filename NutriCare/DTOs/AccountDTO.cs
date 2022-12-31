@@ -1,17 +1,15 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using NutriCare.Models;
 
-namespace NutriCare.Models
+namespace NutriCare.DTOs
 {
-    public class Account
+    public class AccountDTO
     {
         public int AccountId { get; set; }
         public string Email { get; set; } = string.Empty;
-        [MaxLength(96)]
-        public byte[] Password { get; set; } = null!;
         public string FirstName { get; set; } = string.Empty;
         public string LastName { get; set; } = string.Empty;
         public string PhoneNumber { get; set; } = string.Empty;
-        public List<Allergy>? Allergies { get; set; }
-        public List<Intolerance>? Intolerances { get; set; }
+        public IEnumerable<AllergyDTO>? Allergies { get; set; }
+        public IEnumerable<IntoleranceDTO>? Intolerances { get; set; }
     }
 }

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NutriCare.Models;
 
@@ -11,9 +12,11 @@ using NutriCare.Models;
 namespace NutriCare.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20221229230636_NewProduct")]
+    partial class NewProduct
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -136,7 +139,7 @@ namespace NutriCare.Migrations
 
                     b.Property<string>("Barcode")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ImageFrontUrl")
                         .HasColumnType("nvarchar(max)");
@@ -149,10 +152,7 @@ namespace NutriCare.Migrations
 
                     b.HasKey("ProductId");
 
-                    b.HasIndex("Barcode")
-                        .IsUnique();
-
-                    b.ToTable("Products");
+                    b.ToTable("Product");
                 });
 
             modelBuilder.Entity("NutriCare.Models.Scan", b =>
@@ -178,7 +178,7 @@ namespace NutriCare.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("Scans");
+                    b.ToTable("ScanHistories");
                 });
 
             modelBuilder.Entity("AccountAllergy", b =>

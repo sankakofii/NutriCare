@@ -11,6 +11,21 @@ namespace NutriCare.Models
 
         public DbSet<Account> Accounts { get; set; }
 
-        public DbSet<ScanHistory> ScanHistories { get; set; }
+        public DbSet<Scan> Scans { get; set; }
+
+        public DbSet<Allergy> Allergies { get; set; }
+        
+        public DbSet<Intolerance> Intolerances { get; set; }
+
+        public DbSet<Product> Products { get; set; }
+
+
+        protected override void OnModelCreating(ModelBuilder builder)
+        {
+            base.OnModelCreating(builder);
+
+            builder.Entity<Product>().HasIndex(u => u.Barcode).IsUnique();
+        }
+
     }
 }

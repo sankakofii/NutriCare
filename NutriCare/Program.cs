@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using NutriCare.Models;
+using System.Text.Json.Serialization;
 
 namespace NutriCare
 {
@@ -20,6 +21,19 @@ namespace NutriCare
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
+            //Ignoring cycles
+            builder.Services.AddControllers().AddJsonOptions(x =>
+                x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
+
+            //CORS policy
+            builder.Services.AddCors(p => p.AddPolicy("corsapp", builder =>
+            {
+                builder.WithOrigins("*").AllowAnyMethod().AllowAnyHeader();
+            }));
+
+            //AutoMapper
+            builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -33,6 +47,7 @@ namespace NutriCare
 
             app.UseAuthorization();
 
+            app.UseCors("corsapp");
 
             app.MapControllers();
 

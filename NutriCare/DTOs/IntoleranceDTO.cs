@@ -1,9 +1,8 @@
-﻿namespace NutriCare.Models
+﻿namespace NutriCare.DTOs
 {
-    public class Intolerance
+    public class IntoleranceDTO
     {
         public int IntoleranceId { get; set; }
         public string Type { get; set; } = string.Empty;
-        public List<Account>? Accounts { get; set; }
     }
 }
