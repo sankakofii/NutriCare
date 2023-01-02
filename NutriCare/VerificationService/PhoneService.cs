@@ -46,12 +46,6 @@ namespace NutriCare.VerificationService
 
             return verificationCheck.Status;
         }
-
-        public string Test(string phoneNumber)
-        {
-
-            return _accountSid;
-        }
     }
 }
 

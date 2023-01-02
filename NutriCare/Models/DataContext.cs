@@ -14,7 +14,7 @@ namespace NutriCare.Models
         public DbSet<Scan> Scans { get; set; }
 
         public DbSet<Allergy> Allergies { get; set; }
-        
+
         public DbSet<Intolerance> Intolerances { get; set; }
 
         public DbSet<Product> Products { get; set; }

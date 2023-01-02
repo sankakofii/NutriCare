@@ -52,13 +52,5 @@ namespace NutriCare.Controllers
             }
             return Ok(verificationStatus);
         }
-
-        [HttpGet("test")]
-        public string Test(string phoneNumber)
-        {
-            var test = _phoneService.Test(phoneNumber);
-
-            return test;
-        }
     }
 }
