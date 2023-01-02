@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using NutriCare.Models;
+using NutriCare.VerificationService;
 using System.Text.Json.Serialization;
 
 namespace NutriCare
@@ -33,6 +34,9 @@ namespace NutriCare
 
             //AutoMapper
             builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+
+            //phone service
+            builder.Services.AddScoped<IPhoneService, PhoneService>();
 
             var app = builder.Build();
 
