@@ -11,5 +11,6 @@
 
 
         public virtual ICollection<Account>? Accounts { get; set; }
+        public virtual ICollection<IntoleranceIngredient>? IntoleranceIngredients { get; set; }
     }
 }

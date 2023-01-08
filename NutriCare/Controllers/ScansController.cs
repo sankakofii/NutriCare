@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Net.Http.Json;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
@@ -104,7 +105,7 @@ namespace NutriCare.Controllers
                 _context.SaveChanges();
             }
 
-            var acc = await _context.Accounts.Where(i => i.AccountId == accountId).FirstOrDefaultAsync();
+            var acc = await _context.Accounts.Where(i => i.AccountId == accountId).Include(i => i.Allergies).FirstOrDefaultAsync();
 
             if (acc == null)
             {
@@ -130,7 +131,8 @@ namespace NutriCare.Controllers
                 ResponseDTO result = new()
                 {
                     code = product.Barcode,
-                    product = _mapper.Map<ProductDTO>(product)
+                    product = _mapper.Map<ProductDTO>(product),
+                    harm = CheckIfHarmful(accountId, product.Allergens, product.AllergensFromIngredients)
                 };
 
                 return result;
@@ -168,6 +170,28 @@ namespace NutriCare.Controllers
             return NoContent();
         }
 
+        private string CheckIfHarmful(int accountId, string allergen1, string allergen2)
+        {
+            Regex reg =new Regex("[!@#$%^&*()_+=-./<>?;':]");
+            allergen1 = reg.Replace(allergen1, " ");
+            allergen2 = reg.Replace(allergen2, " ");
+            string harm = string.Empty;
+            var accountAllergyList = _context.Accounts.Where(i => i.AccountId == accountId).Select(i => i.Allergies);
+            if (accountAllergyList.Any())
+            {
+                foreach (var a in accountAllergyList)
+                {
+                    foreach (var b in a)
+                    {
+                        if (allergen1.Contains(b.Type.ToLower()) || allergen2.Contains(b.Type.ToLower()))
+                        {
+                            harm += b.Type;
+                        }
+                    }
+                }
+            }
+            return harm;
+        }
         private bool ScanHistoryExists(int id)
         {
             return _context.Scans.Any(e => e.ScanId == id);

@@ -49,9 +49,9 @@ namespace NutriCare
 
             app.UseHttpsRedirection();
 
-            app.UseAuthorization();
-
             app.UseCors("corsapp");
+
+            app.UseAuthorization();
 
             app.MapControllers();
 

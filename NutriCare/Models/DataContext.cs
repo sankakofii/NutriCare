@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using NutriCare.Models;
 
 namespace NutriCare.Models
 {
@@ -26,6 +27,9 @@ namespace NutriCare.Models
 
             builder.Entity<Product>().HasIndex(u => u.Barcode).IsUnique();
         }
+
+
+        public DbSet<NutriCare.Models.IntoleranceIngredient> IntoleranceIngredient { get; set; }
 
     }
 }
