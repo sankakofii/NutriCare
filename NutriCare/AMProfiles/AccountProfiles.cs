@@ -14,6 +14,8 @@ namespace NutriCare.AMProfiles
             CreateMap<Allergy, AllergyDTO>();
 
             CreateMap<Intolerance, IntoleranceDTO>();
+           
+            
         }
     }
 }

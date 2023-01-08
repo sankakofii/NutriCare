@@ -19,12 +19,24 @@ namespace NutriCare.Models
 
         public DbSet<Product> Products { get; set; }
 
+        public DbSet<RefreshToken> RefreshTokens { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
 
-            builder.Entity<Product>().HasIndex(u => u.Barcode).IsUnique();
+
+            //Product
+            builder.Entity<Product>()
+                .HasIndex(u => u.Barcode).IsUnique();
+
+            //Account
+            builder.Entity<Account>()
+                .HasOne(a => a.RefreshToken)
+                .WithOne(a => a.Account)
+                .HasForeignKey<RefreshToken>(c => c.AccountId);
+
         }
 
     }
