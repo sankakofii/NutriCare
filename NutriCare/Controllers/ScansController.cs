@@ -98,7 +98,8 @@ namespace NutriCare.Controllers
                     AllergensFromIngredients = res.product.allergens_from_ingredients,
                     ProductName = res.product.product_name,
                     ImageFrontUrl = res.product.image_front_url,
-                    ImageNutritionUrl = res.product.image_nutrition_url
+                    ImageNutritionUrl = res.product.image_nutrition_url,
+                    IngredientsText = res.product.ingredients_text
                 };
 
                 _context.Products.Add(newProduct);
@@ -138,6 +139,7 @@ namespace NutriCare.Controllers
                 return result;
             } else
             {
+                res.harm = CheckIfHarmful(accountId, product.Allergens, product.AllergensFromIngredients);
                 return res;
             }
         }
@@ -172,7 +174,7 @@ namespace NutriCare.Controllers
 
         private string CheckIfHarmful(int accountId, string allergen1, string allergen2)
         {
-            Regex reg =new Regex("[!@#$%^&*()_+=-./<>?;':]");
+            Regex reg = new Regex("[*'\",_&#^@]");
             allergen1 = reg.Replace(allergen1, " ");
             allergen2 = reg.Replace(allergen2, " ");
             string harm = string.Empty;
