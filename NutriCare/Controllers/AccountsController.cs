@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -14,6 +15,7 @@ namespace NutriCare.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class AccountsController : ControllerBase
     {
         private readonly DataContext _context;
@@ -136,15 +138,15 @@ namespace NutriCare.Controllers
 
         // DELETE: /api/accounts/allergies/remove_allergy
         [HttpDelete("allergies/remove_allergy")]
-        public async Task<IActionResult> RemoveAllergyFromAccountByAccountId(AccountAllergyDTO request)
+        public async Task<IActionResult> RemoveAllergyFromAccountByAccountId(int AllergyId, int AccountId)
         {
-            var allergen = await _context.Allergies.FindAsync(request.AllergyId);
+            var allergen = await _context.Allergies.FindAsync(AllergyId);
             if (allergen == null)
             {
                 return NotFound();
             }
 
-            var account = await _context.Accounts.Where(i => i.AccountId == request.AccountId && i.Allergies.Contains(allergen)).Include(e => e.Allergies).FirstOrDefaultAsync();
+            var account = await _context.Accounts.Where(i => i.AccountId == AccountId && i.Allergies.Contains(allergen)).Include(e => e.Allergies).FirstOrDefaultAsync();
             if (account == null)
             {
                 return NotFound();
@@ -183,15 +185,15 @@ namespace NutriCare.Controllers
 
         // DELETE: /api/accounts/intolerances/remove_intolerance
         [HttpDelete("intolerances/remove_intolerance")]
-        public async Task<IActionResult> RemoveIntoleranceFromAccountByAccountId(AccountIntoleranceDTO request)
+        public async Task<IActionResult> RemoveIntoleranceFromAccountByAccountId(int IntoleranceId, int AccountId)
         {
-            var intolerance = await _context.Intolerances.FindAsync(request.IntoleranceId);
+            var intolerance = await _context.Intolerances.FindAsync(IntoleranceId);
             if (intolerance == null)
             {
                 return NotFound();
             }
 
-            var account = await _context.Accounts.Where(i => i.AccountId == request.AccountId && i.Intolerances.Contains(intolerance)).Include(e => e.Intolerances).FirstOrDefaultAsync();
+            var account = await _context.Accounts.Where(i => i.AccountId == AccountId && i.Intolerances.Contains(intolerance)).Include(e => e.Intolerances).FirstOrDefaultAsync();
             if (account == null)
             {
                 return NotFound();

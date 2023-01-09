@@ -201,7 +201,7 @@ namespace NutriCare.Controllers
                 new Claim(ClaimTypes.Email, account.Email)
             };
 
-            var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
                 _configuration.GetSection("JWT:Token").Value));
 
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256Signature);

@@ -1,9 +1,14 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using NutriCare.Middleware;
 using NutriCare.Models;
 using NutriCare.Services.AccountService;
 using NutriCare.VerificationService;
+using Swashbuckle.AspNetCore.Filters;
+using System.Text;
 using System.Text.Json.Serialization;
 
 namespace NutriCare
@@ -54,6 +59,20 @@ namespace NutriCare
             builder.Services.AddControllers().AddJsonOptions(x =>
                 x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
 
+            //JWT Authentication Service
+            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options =>
+                {
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuerSigningKey = true,
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8
+                            .GetBytes(builder.Configuration.GetSection("JWT:Token").Value)),
+                        ValidateIssuer = false,
+                        ValidateAudience = false
+                    };
+                });
+
             //CORS policy
             builder.Services.AddCors(p => p.AddPolicy("corsapp", builder =>
             {
@@ -83,7 +102,9 @@ namespace NutriCare
 
             app.UseCors("corsapp");
 
-            //app.UseMiddleware<ApiKeyMiddleware>();
+            app.UseAuthentication();
+
+            app.UseMiddleware<ApiKeyMiddleware>();
 
             app.UseAuthorization();
 
