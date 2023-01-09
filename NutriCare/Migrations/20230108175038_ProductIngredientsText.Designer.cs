@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NutriCare.Models;
 
@@ -11,9 +12,11 @@ using NutriCare.Models;
 namespace NutriCare.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20230108175038_ProductIngredientsText")]
+    partial class ProductIngredientsText
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -80,9 +83,6 @@ namespace NutriCare.Migrations
                     b.Property<string>("PhoneNumber")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("RefreshTokenId")
-                        .HasColumnType("int");
 
                     b.HasKey("AccountId");
 
@@ -183,35 +183,6 @@ namespace NutriCare.Migrations
                     b.ToTable("Products");
                 });
 
-            modelBuilder.Entity("NutriCare.Models.RefreshToken", b =>
-                {
-                    b.Property<int>("RefreshTokenId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("RefreshTokenId"));
-
-                    b.Property<int>("AccountId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("Created")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("Expires")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Token")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("RefreshTokenId");
-
-                    b.HasIndex("AccountId")
-                        .IsUnique();
-
-                    b.ToTable("RefreshTokens");
-                });
-
             modelBuilder.Entity("NutriCare.Models.Scan", b =>
                 {
                     b.Property<int>("ScanId")
@@ -268,17 +239,6 @@ namespace NutriCare.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("NutriCare.Models.RefreshToken", b =>
-                {
-                    b.HasOne("NutriCare.Models.Account", "Account")
-                        .WithOne("RefreshToken")
-                        .HasForeignKey("NutriCare.Models.RefreshToken", "AccountId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Account");
-                });
-                
             modelBuilder.Entity("NutriCare.Models.IntoleranceIngredient", b =>
                 {
                     b.HasOne("NutriCare.Models.Intolerance", "Intolerance")
@@ -309,12 +269,6 @@ namespace NutriCare.Migrations
                     b.Navigation("Product");
                 });
 
-            modelBuilder.Entity("NutriCare.Models.Account", b =>
-                {
-                    b.Navigation("RefreshToken")
-                        .IsRequired();
-                });
-                
             modelBuilder.Entity("NutriCare.Models.Intolerance", b =>
                 {
                     b.Navigation("IntoleranceIngredients");

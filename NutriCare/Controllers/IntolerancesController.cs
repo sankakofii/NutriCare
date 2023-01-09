@@ -31,7 +31,7 @@ namespace NutriCare.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<IntoleranceDTO>>> GetIntolerances()
         {
-            return await _context.Intolerances.ProjectTo<IntoleranceDTO>(_mapper.ConfigurationProvider).ToListAsync();
+            return await _context.Intolerances.Include(i => i.IntoleranceIngredients).ProjectTo<IntoleranceDTO>(_mapper.ConfigurationProvider).ToListAsync();
         }
     }
 }

@@ -8,5 +8,6 @@
         public string product_name { get; set; }
         public string image_front_url { get; set; }
         public string image_nutrition_url { get; set; }
+        public string ingredients_text { get; set; }
     }
 }

@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Net.Http.Json;
+using System.Text.Json.Serialization.Metadata;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
@@ -99,14 +101,15 @@ namespace NutriCare.Controllers
                     AllergensFromIngredients = res.product.allergens_from_ingredients,
                     ProductName = res.product.product_name,
                     ImageFrontUrl = res.product.image_front_url,
-                    ImageNutritionUrl = res.product.image_nutrition_url
+                    ImageNutritionUrl = res.product.image_nutrition_url,
+                    IngredientsText = res.product.ingredients_text
                 };
 
                 _context.Products.Add(newProduct);
                 _context.SaveChanges();
             }
 
-            var acc = await _context.Accounts.Where(i => i.AccountId == accountId).FirstOrDefaultAsync();
+            var acc = await _context.Accounts.Where(i => i.AccountId == accountId).Include(i => i.Allergies).FirstOrDefaultAsync();
 
             if (acc == null)
             {
@@ -128,16 +131,17 @@ namespace NutriCare.Controllers
             await _context.SaveChangesAsync();
 
             if (inDB == true)
-            {
+            {   
                 ResponseDTO result = new()
-                {
+                {   
                     code = product.Barcode,
-                    product = _mapper.Map<ProductDTO>(product)
+                    product = _mapper.Map<ProductDTO>(product),
+                    harm = string.Join(" ", CheckIfHarmful(accountId, product.Allergens, product.AllergensFromIngredients, product.IngredientsText).Split(' ').Distinct())
                 };
-
                 return result;
             } else
             {
+                res.harm = string.Join(" ", CheckIfHarmful(accountId, product.Allergens, product.AllergensFromIngredients, product.IngredientsText).Split(' ').Distinct());
                 return res;
             }
         }
@@ -170,6 +174,53 @@ namespace NutriCare.Controllers
             return NoContent();
         }
 
+        private string CheckIfHarmful(int accountId, string allergen1, string allergen2, string ingredients)
+        {
+            Regex reg = new Regex("[*'\",_&#^@]");
+            allergen1 = reg.Replace(allergen1, " ");
+            allergen2 = reg.Replace(allergen2, " ");
+            ingredients = reg.Replace(ingredients, " ");
+            string harm = string.Empty;
+            var x = _context.Accounts.Where(i => i.AccountId == accountId).Include(i => i.Allergies).Include(i => i.Intolerances).ThenInclude(i => i.IntoleranceIngredients).FirstOrDefault();
+            var accountAllergyList = _context.Accounts.Where(i => i.AccountId == accountId).Select(i => i.Allergies);
+            if (accountAllergyList.Any())
+            {
+                foreach (var a in x.Allergies)
+                {
+                    if (allergen1.Contains(a.Type.ToLower()) || allergen2.Contains(a.Type.ToLower()))
+                    {
+                        harm += a.Type + " ";
+                    }
+                    //foreach (var b in a)
+                    //{
+                    //    if (allergen1.Contains(b.Type.ToLower()) || allergen2.Contains(b.Type.ToLower()))
+                    //    {
+                    //        harm += b.Type;
+                    //    }
+                    //}
+                }
+            }
+            var accountIntoleranceList = _context.Accounts.Where(i => i.AccountId == accountId).Select(i => i.Intolerances);
+
+            if (x.Intolerances.Any())
+            {
+                foreach (var a in x.Intolerances)
+                {
+                    foreach (var b in a.IntoleranceIngredients)
+                    {
+                        if (b != null)
+                        {
+                            if (ingredients.Contains(b.IntoleranceIngredientName.ToLower()))
+                            { 
+                                harm += b.IntoleranceIngredientName + " ";
+                            }
+                        }
+                    }
+                }
+            }
+ 
+            return harm;
+        }
         private bool ScanHistoryExists(int id)
         {
             return _context.Scans.Any(e => e.ScanId == id);

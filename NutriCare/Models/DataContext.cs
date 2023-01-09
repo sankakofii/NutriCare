@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using NutriCare.Models;
 
 namespace NutriCare.Models
 {
@@ -38,6 +39,9 @@ namespace NutriCare.Models
                 .HasForeignKey<RefreshToken>(c => c.AccountId);
 
         }
+
+
+        public DbSet<NutriCare.Models.IntoleranceIngredient> IntoleranceIngredient { get; set; }
 
     }
 }

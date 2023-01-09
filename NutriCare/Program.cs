@@ -105,7 +105,7 @@ namespace NutriCare
             app.UseAuthentication();
 
             app.UseMiddleware<ApiKeyMiddleware>();
-
+            
             app.UseAuthorization();
 
             app.MapControllers();

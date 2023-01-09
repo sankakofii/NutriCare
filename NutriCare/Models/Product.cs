@@ -13,5 +13,6 @@ namespace NutriCare.Models
         public string? ProductName { get; set; }
         public string? ImageFrontUrl { get; set; }
         public string? ImageNutritionUrl { get; set; }
+        public string? IngredientsText { get; set; }
     }
 }
