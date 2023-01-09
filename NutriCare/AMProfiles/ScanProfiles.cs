@@ -41,7 +41,12 @@ namespace NutriCare.AMProfiles
                 .ForMember(
                     dst => dst.allergens_from_ingredients,
                     opt => opt.MapFrom(src => src.AllergensFromIngredients)
-                );
+                )
+                .ForMember(
+                    dst => dst.ingredients_text,
+                    opt => opt.MapFrom(src => src.IngredientsText)
+                )
+                ;
 
         }
     }
