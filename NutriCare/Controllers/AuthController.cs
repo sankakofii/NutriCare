@@ -3,8 +3,11 @@ using AutoMapper.QueryableExtensions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using NutriCare.DTOs;
 using NutriCare.Models;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -17,11 +20,13 @@ namespace NutriCare.Controllers
 
         private readonly DataContext _context;
         private readonly IMapper _mapper;
+        private readonly IConfiguration _configuration;
 
-        public AuthController(DataContext context, IMapper mapper)
+        public AuthController(DataContext context, IMapper mapper, IConfiguration configuration)
         {
             _context = context;
             _mapper = mapper;
+            _configuration = configuration;
         }
 
 
@@ -34,9 +39,9 @@ namespace NutriCare.Controllers
                 return Problem("Entity set 'MSO_devContext.Accounts'  is null.");
             }
 
-            if (AccountsEmailExists(account.Email))
+            if (AccountsEmailExists(account.Email) || AccountsPhoneNumberExists(account.PhoneNumber))
             {
-                return BadRequest("User with this email address already exists!");
+                return BadRequest("User with this email address or phone number already exists!");
             }
 
             CreatePasswordHash(account.Password, out byte[] passwordHash);
@@ -53,9 +58,30 @@ namespace NutriCare.Controllers
             _context.Accounts.Add(newAccount);
             await _context.SaveChangesAsync();
 
-            var acc = await _context.Accounts.Where(i => i.AccountId == newAccount.AccountId).ProjectTo<AccountDTO>(_mapper.ConfigurationProvider).FirstOrDefaultAsync();
+            var acc = await _context.Accounts.Where(i => i.AccountId == newAccount.AccountId).Include(a => a.RefreshToken).FirstOrDefaultAsync();
 
-            return Ok(acc);
+            if (acc != null)
+            {
+                string token = CreateToken(newAccount);
+                var refreshToken = GenerateRefreshToken();
+
+                //save refresh token to DB
+                acc.RefreshToken = refreshToken;
+                _context.SaveChanges();
+
+                SetRefreshToken(refreshToken);
+
+                AuthAccountDTO authAccountDTO = new()
+                {
+                    Token = token,
+                    RefreshToken = refreshToken.Token,
+                    Account = _mapper.Map<AccountDTO>(acc)
+                };
+
+                return Ok(authAccountDTO);
+            }
+
+            return BadRequest("Something went wrong. Please try again later.");
         }
 
         // POST: api/Auth/login
@@ -66,16 +92,72 @@ namespace NutriCare.Controllers
                 .Where(a => a.Email == credentials.Email)
                 .Include(a => a.Allergies)
                 .Include(a => a.Intolerances)
+                .Include(a => a.RefreshToken)
                 .FirstOrDefaultAsync();
 
             if (acc != null && VerifyPassword(credentials.Password, acc.Password))
             {
-               AccountDTO accountDto = _mapper.Map<AccountDTO>(acc);
+                AccountDTO accountDto = _mapper.Map<AccountDTO>(acc);
 
-                return Ok(accountDto);
+                string token = CreateToken(acc);
+
+                var refreshToken = GenerateRefreshToken();
+
+                //save refresh token to DB
+                acc.RefreshToken.Token = refreshToken.Token;
+                acc.RefreshToken.Expires = refreshToken.Expires;
+                acc.RefreshToken.Created = refreshToken.Created;
+                _context.SaveChanges();
+
+
+                SetRefreshToken(refreshToken);
+
+                AuthAccountDTO authAccountDTO = new()
+                {
+                    Token = token,
+                    RefreshToken = refreshToken.Token,
+                    Account = accountDto
+                };
+
+                return Ok(authAccountDTO);
             }
 
             return BadRequest("Account with given email address does not exist or the inserted password is incorrect.");
+        }
+
+        [HttpPost("refresh_token")]
+        public async Task<ActionResult<string>> RefreshToken(int accountId)
+        {
+            var refreshToken = Request.Cookies["refreshToken"];
+
+            var acc = await _context.Accounts.Where(a => a.AccountId == accountId).Include(a => a.RefreshToken).FirstOrDefaultAsync();
+
+            if (acc == null)
+            {
+                return NotFound("Account not found.");
+            }
+
+            if ( acc.RefreshToken.Token != refreshToken)
+            {
+                return Unauthorized("Unauthirized.");
+            } else if (acc.RefreshToken.Expires < DateTime.Now)
+            {
+                return Unauthorized("Token expired.");
+            }
+
+
+
+            string token = CreateToken(acc);
+            var newRefreshToken = GenerateRefreshToken();
+
+            //save refresh token to DB
+            acc.RefreshToken = newRefreshToken;
+            _context.SaveChanges();
+
+            SetRefreshToken(newRefreshToken);
+
+            return Ok(token);
+
         }
 
 
@@ -83,6 +165,58 @@ namespace NutriCare.Controllers
         {
             return (_context.Accounts?.Any(e => e.Email == email)).GetValueOrDefault();
         }
+
+        private bool AccountsPhoneNumberExists(string phoneNumber)
+        {
+            return (_context.Accounts?.Any(e => e.PhoneNumber == phoneNumber)).GetValueOrDefault();
+        }
+
+        private static RefreshToken GenerateRefreshToken()
+        {
+            RefreshToken refreshToken = new()
+            {
+                Token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64)),
+                Expires = DateTime.Now.AddDays(7),
+                Created = DateTime.Now
+            };
+
+            return refreshToken;
+        }
+
+        private void SetRefreshToken(RefreshToken newRefreshToken)
+        {
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Expires = newRefreshToken.Expires
+            };
+
+            Response.Cookies.Append("refreshToken", newRefreshToken.Token, cookieOptions);
+        }
+
+        private string CreateToken(Account account)
+        {
+            List<Claim> claims = new()
+            {
+                new Claim(ClaimTypes.Email, account.Email)
+            };
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
+                _configuration.GetSection("JWT:Token").Value));
+
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256Signature);
+
+            var token = new JwtSecurityToken(
+                    claims: claims,
+                    expires: DateTime.Now.AddHours(1),
+                    signingCredentials: creds
+                );
+
+            var jwt = new JwtSecurityTokenHandler().WriteToken(token);
+
+            return jwt;
+        }
+
 
         private static void CreatePasswordHash(string password, out byte[] passwordHash)
         {

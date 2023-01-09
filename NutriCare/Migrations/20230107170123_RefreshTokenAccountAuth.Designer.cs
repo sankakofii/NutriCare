@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NutriCare.Models;
 
@@ -11,9 +12,11 @@ using NutriCare.Models;
 namespace NutriCare.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20230107170123_RefreshTokenAccountAuth")]
+    partial class RefreshTokenAccountAuth
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -123,28 +126,6 @@ namespace NutriCare.Migrations
                     b.ToTable("Intolerances");
                 });
 
-            modelBuilder.Entity("NutriCare.Models.IntoleranceIngredient", b =>
-                {
-                    b.Property<int>("IntoleranceIngredientId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IntoleranceIngredientId"));
-
-                    b.Property<int>("IntoleranceId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("IntoleranceIngredientName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("IntoleranceIngredientId");
-
-                    b.HasIndex("IntoleranceId");
-
-                    b.ToTable("IntoleranceIngredient");
-                });
-
             modelBuilder.Entity("NutriCare.Models.Product", b =>
                 {
                     b.Property<int>("ProductId")
@@ -167,9 +148,6 @@ namespace NutriCare.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ImageNutritionUrl")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("IngredientsText")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ProductName")
@@ -278,17 +256,6 @@ namespace NutriCare.Migrations
 
                     b.Navigation("Account");
                 });
-                
-            modelBuilder.Entity("NutriCare.Models.IntoleranceIngredient", b =>
-                {
-                    b.HasOne("NutriCare.Models.Intolerance", "Intolerance")
-                        .WithMany("IntoleranceIngredients")
-                        .HasForeignKey("IntoleranceId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Intolerance");
-                });
 
             modelBuilder.Entity("NutriCare.Models.Scan", b =>
                 {
@@ -313,11 +280,6 @@ namespace NutriCare.Migrations
                 {
                     b.Navigation("RefreshToken")
                         .IsRequired();
-                });
-                
-            modelBuilder.Entity("NutriCare.Models.Intolerance", b =>
-                {
-                    b.Navigation("IntoleranceIngredients");
                 });
 #pragma warning restore 612, 618
         }

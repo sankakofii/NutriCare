@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace NutriCare.Models
 {
@@ -17,6 +18,8 @@ namespace NutriCare.Models
         public string FirstName { get; set; } = string.Empty;
         public string LastName { get; set; } = string.Empty;
         public string PhoneNumber { get; set; } = string.Empty;
+        public int RefreshTokenId { get; set; }
+        public RefreshToken RefreshToken { get; set; } = null!;
 
 
 
