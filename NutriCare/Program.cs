@@ -53,6 +53,17 @@ namespace NutriCare
                                  { key, new List<string>() }
                         };
                     c.AddSecurityRequirement(requirement);
+
+                    //jwt for swagger
+                    c.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
+                    {
+                        Description = "Standard Authorization header using the Bearer scheme (\"bearer {token}\")",
+                        In = ParameterLocation.Header,
+                        Name = "Authorization",
+                        Type = SecuritySchemeType.ApiKey
+                    });
+
+                    c.OperationFilter<SecurityRequirementsOperationFilter>();
                 });
 
             //Ignoring cycles

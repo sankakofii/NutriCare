@@ -55,33 +55,24 @@ namespace NutriCare.Controllers
 
         // PUT: api/Accounts/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutAccount(int id, Account account)
+        [HttpPut]
+        public async Task<IActionResult> PutAccount(EditAccountDTO newAccountInfo)
         {
-            if (id != account.AccountId)
+            var acc = await _context.Accounts.Where(a => a.AccountId == newAccountInfo.AccountId).FirstOrDefaultAsync();
+
+            if (acc == null)
             {
                 return BadRequest();
             }
 
-            _context.Entry(account).State = EntityState.Modified;
+            acc.FirstName = newAccountInfo.FirstName;
+            acc.LastName = newAccountInfo.LastName;
 
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!AccountExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            _context.Entry(acc).State = EntityState.Modified;
 
-            return NoContent();
+            await _context.SaveChangesAsync();
+
+            return Ok();
         }
 
         // POST: api/Accounts
