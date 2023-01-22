@@ -29,7 +29,7 @@ namespace NutriCare.VerificationService
               to: phoneNumber,
               channel: "sms",
               pathServiceSid: _serviceSid
-           );
+            );
 
             return verification.Status;
         }

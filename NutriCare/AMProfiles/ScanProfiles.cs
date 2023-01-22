@@ -11,7 +11,8 @@ namespace NutriCare.AMProfiles
             CreateMap<CreateScanHistoryDTO, Scan>();
 
 
-            CreateMap<ResponseDTO, Product>(); //fix
+            CreateMap<ResponseDTO, Product>();
+
             CreateMap<Scan, ScanDTO>()
                 .ForMember(
                     dst => dst.code,

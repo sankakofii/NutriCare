@@ -29,14 +29,14 @@ namespace NutriCare.Controllers
 
         // GET: api/Accounts
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Account>>> GetAccounts()
+        public async Task<ActionResult<IEnumerable<AccountDTO>>> GetAccounts()
         {
             return Ok(await _context.Accounts.ProjectTo<AccountDTO>(_mapper.ConfigurationProvider).ToListAsync());
         }
 
         // GET: api/Accounts/5
         [HttpGet("{id}", Name = "GetAccountById")]
-        public async Task<ActionResult<Account>> GetAccountById(int id)
+        public async Task<ActionResult<AccountDTO>> GetAccountById(int id)
         {
             if (_context.Accounts == null)
             {

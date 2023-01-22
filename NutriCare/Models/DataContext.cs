@@ -22,6 +22,7 @@ namespace NutriCare.Models
 
         public DbSet<RefreshToken> RefreshTokens { get; set; }
 
+        public DbSet<IntoleranceIngredient> IntoleranceIngredient { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -41,7 +42,7 @@ namespace NutriCare.Models
         }
 
 
-        public DbSet<NutriCare.Models.IntoleranceIngredient> IntoleranceIngredient { get; set; }
+        
 
     }
 }

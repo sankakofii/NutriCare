@@ -33,7 +33,7 @@ namespace NutriCare.Controllers
             _mapper = mapper;
         }
 
-        // GET: api/ScanHistories
+        // GET: api/Scans
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Scan>>> GetScanHistories()
         {
@@ -94,16 +94,18 @@ namespace NutriCare.Controllers
                     throw e;
                 }
 
-                Product newProduct = new()
-                {
-                    Barcode = res.code,
-                    Allergens = res.product.allergens,
-                    AllergensFromIngredients = res.product.allergens_from_ingredients,
-                    ProductName = res.product.product_name,
-                    ImageFrontUrl = res.product.image_front_url,
-                    ImageNutritionUrl = res.product.image_nutrition_url,
-                    IngredientsText = res.product.ingredients_text
-                };
+                //Product newProduct = new()
+                //{
+                //    Barcode = res.code,
+                //    Allergens = res.product.allergens,
+                //    AllergensFromIngredients = res.product.allergens_from_ingredients,
+                //    ProductName = res.product.product_name,
+                //    ImageFrontUrl = res.product.image_front_url,
+                //    ImageNutritionUrl = res.product.image_nutrition_url,
+                //    IngredientsText = res.product.ingredients_text
+                //};
+
+                Product newProduct = _mapper.Map<Product>(res);
 
                 _context.Products.Add(newProduct);
                 _context.SaveChanges();
@@ -182,8 +184,13 @@ namespace NutriCare.Controllers
             ingredients = reg.Replace(ingredients, " ");
             string harm = string.Empty;
             var x = _context.Accounts.Where(i => i.AccountId == accountId).Include(i => i.Allergies).Include(i => i.Intolerances).ThenInclude(i => i.IntoleranceIngredients).FirstOrDefault();
-            var accountAllergyList = _context.Accounts.Where(i => i.AccountId == accountId).Select(i => i.Allergies);
-            if (accountAllergyList.Any())
+            //var accountAllergyList = _context.Accounts.Where(i => i.AccountId == accountId).Select(i => i.Allergies);
+            if (x == null)
+            {
+                return harm;
+            }
+
+            if (x.Allergies != null && x.Allergies.Any())
             {
                 foreach (var a in x.Allergies)
                 {
@@ -191,29 +198,19 @@ namespace NutriCare.Controllers
                     {
                         harm += a.Type + " ";
                     }
-                    //foreach (var b in a)
-                    //{
-                    //    if (allergen1.Contains(b.Type.ToLower()) || allergen2.Contains(b.Type.ToLower()))
-                    //    {
-                    //        harm += b.Type;
-                    //    }
-                    //}
                 }
             }
-            var accountIntoleranceList = _context.Accounts.Where(i => i.AccountId == accountId).Select(i => i.Intolerances);
+            //var accountIntoleranceList = _context.Accounts.Where(i => i.AccountId == accountId).Select(i => i.Intolerances);
 
-            if (x.Intolerances.Any())
+            if (x.Intolerances != null && x.Intolerances.Any())
             {
                 foreach (var a in x.Intolerances)
                 {
                     foreach (var b in a.IntoleranceIngredients)
                     {
-                        if (b != null)
+                        if (b != null && ingredients.Contains(b.IntoleranceIngredientName.ToLower()))
                         {
-                            if (ingredients.Contains(b.IntoleranceIngredientName.ToLower()))
-                            { 
-                                harm += b.IntoleranceIngredientName + " ";
-                            }
+                            harm += b.IntoleranceIngredientName + " ";
                         }
                     }
                 }
@@ -221,7 +218,7 @@ namespace NutriCare.Controllers
  
             return harm;
         }
-        private bool ScanHistoryExists(int id)
+        private bool ScanExists(int id)
         {
             return _context.Scans.Any(e => e.ScanId == id);
         }
